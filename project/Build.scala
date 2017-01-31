@@ -58,7 +58,7 @@ object Dependencies {
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.0"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
-  val playJson = "com.typesafe.play" %% "play-json" % "2.6.0-M1"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.5.6"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
