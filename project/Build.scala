@@ -6,14 +6,12 @@ import sbtrelease._
 object BuildSettings {
   val buildOrganization = "com.github.gilbertw1"
   val buildVersion      = "0.2.0"
-  val buildScalaVersion = "2.12.1"
-  val buildCrossScalaVersions = Seq("2.11.8", "2.12.1")
+  val buildScalaVersion = "2.11.8"
 
   val buildSettings = Seq (
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
-    crossScalaVersions := buildCrossScalaVersions,
     publishMavenStyle  := true,
     publishTo          := {
       val nexus = "https://oss.sonatype.org/"
@@ -58,7 +56,7 @@ object Dependencies {
   val akkaHttp = "com.typesafe.akka" %% "akka-http-core" % "10.0.0"
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
-  val playJson = "com.typesafe.play" %% "play-json" % "2.6.0-M1"
+  val playJson = "com.typesafe.play" %% "play-json" % "2.5.6"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
