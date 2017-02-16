@@ -25,7 +25,7 @@ object SlackApiClient {
   private[api] implicit val fileInfoFmt = Json.format[FileInfo]
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
-  private val apiBaseRequest = HttpRequest(uri = Uri(s"https://slack.com/api/"))
+  private val apiBaseRequest = HttpRequest(uri = Uri(s"https://slack.com/api/"), method = HttpMethods.POST)
 
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
