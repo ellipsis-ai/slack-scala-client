@@ -10,7 +10,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{ Source, Sink }
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, HttpResponse, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -69,6 +69,10 @@ object SlackApiClient {
 
   private def addQueryParams(request: HttpRequest, queryParams: Seq[(String,String)]): HttpRequest = {
     request.withUri(request.uri.withQuery(Uri.Query((request.uri.query() ++ queryParams): _*)))
+  }
+
+  private def copyAsPostWithParams(request: HttpRequest, params: Map[String,String]): HttpRequest = {
+    request.copy(entity = FormData(params).toEntity, method = HttpMethods.POST)
   }
 
   private def cleanParams(params: Seq[(String,Any)]): Seq[(String,String)] = {
@@ -576,7 +580,7 @@ class SlackApiClient(token: String) {
 
   private def makeApiMethodRequest(apiMethod: String, queryParams: (String,Any)*)(implicit system: ActorSystem): Future[JsValue] = {
     val req = addSegment(apiBaseWithTokenRequest, apiMethod)
-    makeApiRequest(addQueryParams(req, cleanParams(queryParams)))
+    makeApiRequest(copyAsPostWithParams(req, cleanParams(queryParams).toMap))
   }
 
   private def createEntity(file: File): MessageEntity = {
