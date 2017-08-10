@@ -1,5 +1,6 @@
 package slack
 
+import ai.x.play.json.Jsonx
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
@@ -20,7 +21,9 @@ package object models {
   implicit val userFmt = Json.format[User]
   implicit val reactionFmt = Json.format[Reaction]
   implicit val slackCommentFmt = Json.format[SlackComment]
-  implicit val slackFileFmt = Json.format[SlackFile]
+
+  implicit lazy val slackFileFmt = Jsonx.formatCaseClass[SlackFile]
+
   implicit val slackFileIdFmt = Json.format[SlackFileId]
   implicit val updateResponseFmt = Json.format[UpdateResponse]
   implicit val appFmt = Json.format[App]

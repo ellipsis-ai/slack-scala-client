@@ -184,7 +184,8 @@ class TestJsonMessages extends FunSuite {
     val ev = json.as[SlackEvent]
     assert(ev.asInstanceOf[MessageWithSubtype].messageSubType.equals(FileShareMessage(SlackFile("F1FVBN542",
       1465567656, 1465569974, Some("test-file"), "test-title", "image/png", "image/png",
-      "test", "U1234", "test-mode", editable = false, is_external = false, "etype", 2000, None, None, None, None, None))))
+      "test", "U1234", "test-mode", editable = false, is_external = false, "etype", 2000, None, None, None, None, None,
+      None, None, None, None, None, None, "permalink", None, None, None, None, None, false, false, Seq(), None, None, None))))
   }
 
   test("parse reaction added to message") {
