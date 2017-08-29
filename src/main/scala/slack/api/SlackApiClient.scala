@@ -289,7 +289,7 @@ class SlackApiClient(token: String) {
       "channels" -> channels.map(_.mkString(","))
     )
     val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(addQueryParams(request, cleanParams(params)))
+    val res = makeApiRequest(copyAsPostWithParams(request, cleanParams(params).toMap))
     extract[SlackFile](res, "file")
   }
 
