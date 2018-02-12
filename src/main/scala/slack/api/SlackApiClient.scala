@@ -299,10 +299,10 @@ class SlackApiClient(token: String) {
     val res = content match {
       case Right(str) =>
         val request = addSegment(apiBaseWithTokenRequest, "files.upload").withMethod(method = HttpMethods.POST)
-        makeApiRequest(addQueryParams(request, cleanParams(params ++ Seq("content" -> str))))
+        makeApiRequest(copyAsPostWithParams(request, cleanParams(params ++ Seq("content" -> str)).toMap))
       case Left(file) =>
         val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
-        makeApiRequest(addQueryParams(request, cleanParams(params)))
+        makeApiRequest(copyAsPostWithParams(request, cleanParams(params).toMap))
     }
     extract[SlackFile](res, "file")
   }
