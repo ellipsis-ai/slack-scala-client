@@ -1,19 +1,18 @@
 package slack.api
 
 import java.io.File
-import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
 import play.api.libs.json._
 import slack.models._
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{ Source, Sink }
+import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.parboiled2.CharPredicate
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 object SlackApiClient {
 
@@ -26,6 +25,16 @@ object SlackApiClient {
   private[api] implicit val reactionsResponseFmt = Json.format[ReactionsResponse]
 
   private val apiBaseRequest = HttpRequest(uri = Uri(s"https://slack.com/api/"))
+
+  /* TEMPORARY WORKAROUND - UrlEncode '?' in query string parameters */
+  val charClassesClass = Class.forName("akka.http.impl.model.parser.CharacterClasses$")
+  val charClassesObject = charClassesClass.getField("MODULE$").get(charClassesClass)
+  //  strict-query-char-np
+  val charPredicateField = charClassesObject.getClass.getDeclaredField("strict$minusquery$minuschar$minusnp")
+  charPredicateField.setAccessible(true)
+  val updatedCharPredicate = charPredicateField.get(charClassesObject).asInstanceOf[CharPredicate] -- '?'
+  charPredicateField.set(charClassesObject, updatedCharPredicate)
+  /* END TEMPORARY WORKAROUND */
 
   def apply(token: String): SlackApiClient = {
     new SlackApiClient(token)
@@ -86,7 +95,6 @@ object SlackApiClient {
   }
 
   private def addSegment(request: HttpRequest, segment: String): HttpRequest = {
-    println(request.uri.path + segment)
     request.withUri(request.uri.withPath(request.uri.path + segment))
   }
 }
@@ -278,18 +286,24 @@ class SlackApiClient(token: String) {
     res.map(_.as[FilesResponse])(system.dispatcher)
   }
 
-  def uploadFile(file: File, content: Option[String] = None, filetype: Option[String] = None, filename: Option[String] = None,
-      title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
-    val params = Seq (
-      "content" -> content,
+  def uploadFile(content: Either[File, String], filetype: Option[String] = None, filename: Option[String] = None,
+    title: Option[String] = None, initialComment: Option[String] = None, channels: Option[Seq[String]] = None)(implicit system: ActorSystem): Future[SlackFile] = {
+    val params = Seq(
       "filetype" -> filetype,
       "filename" -> filename,
       "title" -> title,
       "initial_comment" -> initialComment,
       "channels" -> channels.map(_.mkString(","))
     )
-    val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
-    val res = makeApiRequest(copyAsPostWithParams(request, cleanParams(params).toMap))
+
+    val res = content match {
+      case Right(str) =>
+        val request = addSegment(apiBaseWithTokenRequest, "files.upload").withMethod(method = HttpMethods.POST)
+        makeApiRequest(addQueryParams(request, cleanParams(params ++ Seq("content" -> str))))
+      case Left(file) =>
+        val request = addSegment(apiBaseWithTokenRequest, "files.upload").withEntity(createEntity(file)).withMethod(method = HttpMethods.POST)
+        makeApiRequest(addQueryParams(request, cleanParams(params)))
+    }
     extract[SlackFile](res, "file")
   }
 
@@ -422,6 +436,41 @@ class SlackApiClient(token: String) {
     res.map(r => (r \ "channel" \ "id").as[String])(system.dispatcher)
   }
 
+  /**************************/
+  /****  MPIM Endpoints  ****/
+  /**************************/
+
+  def openMpim(userIds: Seq[String])(implicit system: ActorSystem): Future[String] = {
+    val res = makeApiMethodRequest("mpim.open", "users" -> userIds.mkString(","))
+    res.map(r => (r \ "group" \ "id").as[String])(system.dispatcher)
+  }
+
+  def closeMpim(channelId: String)(implicit system: ActorSystem): Future[Boolean] = {
+    val res = makeApiMethodRequest("mpim.close", "channel" -> channelId)
+    extract[Boolean](res, "ok")
+  }
+
+  def listMpims()(implicit system: ActorSystem): Future[Seq[Group]] = {
+    val res = makeApiMethodRequest("mpim.list")
+    extract[Seq[Group]](res, "groups")
+  }
+
+  def markMpim(channelId: String, ts: String)(implicit system: ActorSystem): Future[Boolean] = {
+    val res = makeApiMethodRequest("mpim.mark", "channel" -> channelId, "ts" -> ts)
+    extract[Boolean](res, "ok")
+  }
+
+  def getMpimHistory(channelId: String, latest: Option[String] = None, oldest: Option[String] = None,
+                   inclusive: Option[Int] = None, count: Option[Int] = None)(implicit system: ActorSystem): Future[HistoryChunk] = {
+    val res = makeApiMethodRequest (
+      "mpim.history",
+      "channel" -> channelId,
+      "latest" -> latest,
+      "oldest" -> oldest,
+      "inclusive" -> inclusive,
+      "count" -> count)
+    res.map(_.as[HistoryChunk])(system.dispatcher)
+  }
 
   /******************************/
   /****  Reaction Endpoints  ****/
