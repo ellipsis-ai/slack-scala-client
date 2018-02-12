@@ -13,6 +13,7 @@ object BuildSettings {
     organization       := buildOrganization,
     version            := buildVersion,
     scalaVersion       := buildScalaVersion,
+    crossScalaVersions := buildCrossScalaVersions,
     publishMavenStyle  := true,
     publishTo          := {
       val nexus = "https://oss.sonatype.org/"
