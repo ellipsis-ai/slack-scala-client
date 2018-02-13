@@ -28,7 +28,7 @@ case class UserProfile (
   first_name: Option[String],
   last_name: Option[String],
   real_name: Option[String],
-  display_name: String,
+  display_name: Option[String],
   real_name_normalized: Option[String],
   display_name_normalized: Option[String],
   email: Option[String],
