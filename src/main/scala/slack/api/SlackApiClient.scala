@@ -9,7 +9,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
+import akka.http.scaladsl.model.{ Uri, HttpRequest, Multipart, FormData, HttpEntity, MessageEntity, MediaTypes, HttpMethods }
 import akka.parboiled2.CharPredicate
 
 import scala.concurrent.Future
