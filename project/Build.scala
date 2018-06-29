@@ -57,11 +57,12 @@ object Dependencies {
 
   val scalaAsync = "org.scala-lang.modules" %% "scala-async" % "0.9.6"
   val playJson = "com.typesafe.play" %% "play-json" % "2.5.6"
+  val playJsonExtensions = "ai.x" %% "play-json-extensions" % "0.9.0"
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 
   val akkaDependencies = Seq(akkaActor, akkaHttp)
-  val miscDependencies = Seq(playJson, scalaAsync)
+  val miscDependencies = Seq(playJson, playJsonExtensions, scalaAsync)
   val testDependencies = Seq(scalatest)
 
   val allDependencies = akkaDependencies ++ miscDependencies ++ testDependencies
